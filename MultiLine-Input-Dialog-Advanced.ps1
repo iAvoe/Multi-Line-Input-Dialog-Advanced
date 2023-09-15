@@ -162,24 +162,24 @@ $null = [ProcessDPI]::SetProcessDPIAware()
 $mLineVarStr="" #Initialization, and if Read-MultiLineInputDialog outputs $null, this variable remains being ""
 
 #Do-While loop-on-error prompting - Textbox mode - Array output
-#User cannot proceed by returing empty string, or defined false values
+#User cannot proceed by returning empty string, or false values defined by your cusmization
 Do {($mLineVarAry = Read-MultiLineInputDialog -Message "Put your text items here, separated by line breaks
 This box allows up to 2 lines of text for extra notes." -WindowTitle "🖅 MLI-Dialog Advanced - Your title here" -InboxType "1" -ReturnType "ary")
     if  ($mLineVarAry -eq "") {Write-Error "× Received empty value, try again"}
 } While ($mLineVarStr -eq "")
 
-#Normal Prompting, allows empty output - Textbox mode - String output
+#Normal Prompting (allows empty output) - Textbox mode - String output
 $mLineVarStr = Read-MultiLineInputDialog -Message "Put your text items here, separated by line breaks
 This box allows up to 2 lines of text for extra notes" -WindowTitle "🖅 MLI-Dialog Advanced - Textbox mode" -InboxType "txt" -ReturnType "str"
 $mLineVarStr
 
-#Normal Prompting, allows empty output - Drag & drop mode - String output
+#Normal Prompting (allows empty output) - Drag & drop mode - String output
 $dDropVarStr = Read-MultiLineInputDialog -Message "Drag each of your file items here
 This box allows up to 2 lines of text for extra notes" -WindowTitle "🖅 MLI-Dialog Advanced - Drag&drop mode" -InboxType "dnd" -ReturnType "str"
 $dDropVarStr
 #$mLineVarStr.GetType()
 
-#Normal Prompting - Drag & drop mode - Array output
+#Normal Prompting (allows empty output) - Drag & drop mode - Array output
 $dDropVarAry = Read-MultiLineInputDialog -Message "Drag each of your file items here
 This box allows up to 2 lines of text for extra notes" -WindowTitle "🖅 MLI-Dialog Advanced - Drag&drop mode" -InboxType "dnd" -ReturnType "2"
 $dDropVarAry 
