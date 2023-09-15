@@ -1,7 +1,14 @@
-Function Read-MultiLineInputDialog([string]$Message, [string]$WindowTitle, [string]$DefaultText) {#「@Daniel Schroeder」
+﻿Function Read-MultiLineInputDialog([string]$WindowTitle, [string]$Message, [string]$InboxType, [int]$FontSize=12, [string]$ReturnType="str", [bool]$ShowDebug=$false) {#「@Daniel Schroeder」
+    #-WindowTitle "Str Value"  == Title of the prompt window
+    #-Message     "Str Value"  == Prompt text shown above textbox and below title box
+    #-InboxType   "1" / "txt"  == Default MultiLine Input Dialog
+    #-InboxType   "2" / "dnd"  == Drag & Drop MultiLine Path Input Dialog
+    #-FontSize    (Default 12) == Default textbox font size
+    #-ReturnType  "1" / "str"  == Return a multi-line string of items, empty lines are scrubbed
+    #-ReturnType  "2" / "ary"  == Return an array of items, empty array items are scrubbed
     $DebugPreference = 'Continue'
     if (($host.name -match 'consolehost')) {
-        Write-Debug "√ Running inside PowerShell Console, using resolution data from GWMI"
+        if ($ShowDebug -eq $true) {Write-Debug "√ Running inside PowerShell Console, using resolution data from GWMI"}
         $oWidth  = gwmi win32_videocontroller | select-object CurrentHorizontalResolution -first 1
         $oHeight = gwmi win32_videocontroller | select-object CurrentVerticalResolution -first 1
         [int]$mWidth  = [Convert]::ToInt32($oWidth.CurrentHorizontalResolution)
@@ -9,12 +16,13 @@ Function Read-MultiLineInputDialog([string]$Message, [string]$WindowTitle, [stri
         #Write-Debug "√ $mWidth x $mHeight"
     }
     else {
-        Write-Debug "√ Running inside PowerShell ISE, using resolution data from SysInfo"
+        if ($ShowDebug -eq $true) {Write-Debug "√ Running inside PowerShell ISE, using resolution data from SysInfo"}
         [int]$mWidth  = [System.Windows.Forms.SystemInformation]::PrimaryMonitorSize.Width
         [int]$mHeight = [System.Windows.Forms.SystemInformation]::PrimaryMonitorSize.Height
     }
     Add-Type -AssemblyName System.Drawing
     Add-Type -AssemblyName System.Windows.Forms
+
     #Converting from monitor resolution: position of window label text
     [int]$LBStartX = [math]::Round($mWidth /192)
     [int]$LBStartY = [math]::Round($mHeight/108)
@@ -22,25 +30,47 @@ Function Read-MultiLineInputDialog([string]$Message, [string]$WindowTitle, [stri
     [int]$LblSizeY = [math]::Round($mHeight/54)
     #Label text under the GUI title, with content from $Message
     $label = New-Object System.Windows.Forms.Label
-    $label.Location = New-Object System.Drawing.Size($LBStartX,$LBStartY) #非换算
-    $label.Size = New-Object System.Drawing.Size($LblSizeX,$LblSizeY) #非换算，$Message太长则增加
+    $label.Location = New-Object System.Drawing.Size($LBStartX,$LBStartY) #Label text starting position
+    $label.Size = New-Object System.Drawing.Size($LblSizeX,$LblSizeY) #Label text box size
     $label.AutoSize = $true
     $label.Text = $Message
-    #Converting from monitor resolution: position & size of input textbox
-    [int]$TBStartX = [math]::Round($mWidth /192)
-    [int]$TBStartY = [math]::Round($mHeight/27)
-    [int]$TblSizeX = [math]::Round($mWidth /3.73)
-    [int]$TblSizeY = [math]::Round($mHeight/2.57)
-    #Drawing textbox
-    $textBox = New-Object System.Windows.Forms.TextBox
-    $textBox.Location = New-Object System.Drawing.Size($TBStartX,$TBStartY) #Draw starting postiton
-    $textBox.Size = New-Object System.Drawing.Size($TblSizeX,$TblSizeY) #Size of textbox
-    $textBox.Font = New-Object System.Drawing.Font((New-Object System.Windows.Forms.Form).font.Name,10) #Fixing the small font size in high-dpi monitor, meanwhile not making it oversized for low-dpi monitor
-    $textBox.AcceptsReturn = $true
-    $textBox.AcceptsTab = $false
-    $textBox.Multiline = $true
-    $textBox.ScrollBars = 'Both'
-    $textBox.Text = $DefaultText
+
+    #Converting from monitor resolution: position & size of input textbox & listbox
+    [int]$LBStartX = [int]$TBStartX = [math]::Round($mWidth /192)
+    [int]$LBStartY = [int]$TBStartY = [math]::Round($mHeight/27)
+    [int]$LblSizeX = [int]$TblSizeX = [math]::Round($mWidth /3.73)
+    [int]$LblSizeY = [int]$TblSizeY = [math]::Round($mHeight/2.57)
+    #Drawing textbox 1 / listbox 2
+    if     (($InboxType -eq "txt") -or ($InboxType -eq "1")) {
+        $textBox               = New-Object System.Windows.Forms.TextBox 
+        $textBox.Location      = New-Object System.Drawing.Size($TBStartX,$TBStartY) #Draw starting postiton
+        $textBox.Size          = New-Object System.Drawing.Size($TblSizeX,$TblSizeY) #Size of textbox
+        $textBox.Font          = New-Object System.Drawing.Font((New-Object System.Windows.Forms.Form).font.Name,$FontSize)
+        $textBox.AcceptsReturn = $true
+        $textBox.AcceptsTab    = $false
+        $textBox.Multiline     = $true
+        $textBox.ScrollBars    = 'Both'
+        $textBox.Text          = "" #Leave default text blank in order to check if user has typed / pasted nothing and (accidentally) clicks OK, which can mitigated userby Do-While loop checking and prevents a script startover of frustration
+    }
+    elseif (($InboxType -eq "dnd") -or ($InboxType -eq "2")) {
+        $listBox = New-Object Windows.Forms.ListBox
+        $listBox.Location = New-Object System.Drawing.Size($LBStartX,$LBStartY) #Draw starting postiton
+        $listBox.Size = New-Object System.Drawing.Size($LblSizeX,$LblSizeY) #Size of textbox
+        $listBox.Font = New-Object System.Drawing.Font((New-Object System.Windows.Forms.Form).font.Name,$FontSize)
+        $listBox.Anchor = ([System.Windows.Forms.AnchorStyles]::Bottom -bor [System.Windows.Forms.AnchorStyles]::Left -bor [System.Windows.Forms.AnchorStyles]::Right -bor [System.Windows.Forms.AnchorStyles]::Top)
+        $listBox.AutoSize = $true
+        $listBox.IntegralHeight = $false
+        $listBox.AllowDrop = $true
+        #Create Drag-&-Drop events with effects to actually get the GUI working, not the copy-to-CLI side
+        $listBox_DragOver = [System.Windows.Forms.DragEventHandler]{
+	        if ($_.Data.GetDataPresent([Windows.Forms.DataFormats]::FileDrop)) {$_.Effect = 'Copy'}                       #$_=[System.Windows.Forms.DragEventArgs]
+	        else                                                               {$_.Effect = 'None'}
+        }
+        $listBox_DragDrop = [System.Windows.Forms.DragEventHandler]{
+	        foreach ($filename in $_.Data.GetData([Windows.Forms.DataFormats]::FileDrop)) {$listBox.Items.Add($filename)} #$_=[System.Windows.Forms.DragEventArgs]
+        }
+    }
+
     #Converting from monitor resolution: OK button's starting position & size
     [int]$OKStartX = [math]::Round($mWidth /4.7)
     [int]$OKStartY = [math]::Round($mHeight/108)
@@ -50,9 +80,10 @@ Function Read-MultiLineInputDialog([string]$Message, [string]$WindowTitle, [stri
     $okButton = New-Object System.Windows.Forms.Button
     $okButton.Location = New-Object System.Drawing.Size($OKStartX,$OKStartY) #OK button position
     $okButton.Size = New-Object System.Drawing.Size($OKbSizeX,$OKbSizeY) #OK button size
-    $okButton.Text = "√ OK"
-    $okButton.DialogResult = "OK" #Or $okButton.DialogResult = $okButton.Text = "OK" for one line, but that's anti-lang-localization
-    $okButton.Add_Click({$form.Tag = $textBox.Text; $form.Close()})
+    $okButton.Text = "OK"
+    $okButton.DialogResult = [System.Windows.Forms.DialogResult]::OK
+    if     (($InboxType -eq "txt") -or ($InboxType -eq "1")) {$okButton.Add_Click({$form.Tag = $textBox.Text; $form.Close()})}
+    elseif (($InboxType -eq "dnd") -or ($InboxType -eq "2")) {$okButton.Add_Click({$form.Tag = $listBox.Text; $form.Close()})}
     #Converting from monitor resolution: Cancel button's starting position
     [int]$ClStartX = [math]::Round($mWidth /4.08)
     [int]$ClStartY = $OKStartY #Same Height as the OK button
@@ -62,8 +93,8 @@ Function Read-MultiLineInputDialog([string]$Message, [string]$WindowTitle, [stri
     $cancelButton = New-Object System.Windows.Forms.Button
     $cancelButton.Location = New-Object System.Drawing.Size($ClStartX,$ClStartY)
     $cancelButton.Size = New-Object System.Drawing.Size($ClbSizeX,$ClbSizeY)
-    $cancelButton.Text = "× Cancel"
-    $cancelButton.DialogResult = "Cancel"
+    $cancelButton.Text = "Cancel"
+    $cancelButton.DialogResult = [System.Windows.Forms.DialogResult]::Cancel
     $cancelButton.Add_Click({$form.Tag = $null; $form.Close()})
     #Converting from monitor resolution: size of the prompt/form window
     [int]$formSizeX = [math]::Round($mWidth /3.56)
@@ -80,15 +111,43 @@ Function Read-MultiLineInputDialog([string]$Message, [string]$WindowTitle, [stri
     $form.CancelButton = $cancelButton
     $form.ShowInTaskbar = $true
     #Add control elements to the prompt/form window
-    $form.Controls.Add($label); $form.Controls.Add($textBox); $form.Controls.Add($okButton); $form.Controls.Add($cancelButton)
-    #Load and show the window
+    $form.Controls.Add($label); $form.Controls.Add($okButton); $form.Controls.Add($cancelButton)
+    if     (($InboxType -eq "txt") -or ($InboxType -eq "1")) {
+        if ($ShowDebug -eq $true) {Write-Debug "! Mode == MultiLine textBox Form"}
+        $form.Controls.Add($textBox)
+    }
+    elseif (($InboxType -eq "dnd") -or ($InboxType -eq "2")) {
+        if ($ShowDebug -eq $true) {Write-Debug "! Mode == Drag&Drop listBox From"}
+        $form.Controls.Add($listBox)
+        #Add form Closing events for drag-&-drop events only, basically to remove data from listBox
+        $form_FormClosed = {
+	        try {
+                $listBox.remove_Click($button_Click)
+		        $listBox.remove_DragOver($listBox_DragOver)
+		        $listBox.remove_DragDrop($listBox_DragDrop)
+                $listBox.remove_DragDrop($listBox_DragDrop)
+		        $form.remove_FormClosed($Form_Cleanup_FormClosed)
+	        }
+	        catch [Exception] {}
+        }
+        #Load Drag-&-Drop events into the form
+        $listBox.Add_DragOver($listBox_DragOver)
+        $listBox.Add_DragDrop($listBox_DragDrop)
+        $form.Add_FormClosed($form_FormClosed)
+    }
+    #Load Add_Shown event used by both textbox & drag-&-drop events into form
     $form.Add_Shown({$form.Activate()})
     #Do-While loop enforced UserErrorAction-Rewind prompting, user can still proceed by returning empty string by clicking OK
-    Do {$dInput = $form.ShowDialog(); if ($dInput -eq "Cancel") {Write-Debug "× Unable to cancel, please stop PowerShell Window instead"}} While ($dInput -eq "Cancel")
+    Do {$dInput = $form.ShowDialog()
+        if  ($dInput -eq [System.Windows.Forms.DialogResult]::Cancel) {Write-Debug "× Cancel denied, please close PowerShell console or click stop in PowerShell ISE instead"}
+    } While ($dInput -eq [System.Windows.Forms.DialogResult]::Cancel)
     #Normal prompting, user can proceed with $null return by clicking Cancel or ×, or empty string by clicking OK
     #$form.ShowDialog()
-    #Return input value
-    return $form.Tag
+    #Scrub empty lines away and return in multi-line string / array based on user definition
+    if     ((($InboxType -eq "txt")-or($InboxType -eq "1")) -and (($ReturnType -eq "str")-or($ReturnType -eq "1"))) {return (($form.Tag.Split("`r`n").Trim()      | where {$_ -ne ""}) | Out-String)} #Multiline textBox string out
+    elseif ((($InboxType -eq "dnd")-or($InboxType -eq "2")) -and (($ReturnType -eq "str")-or($ReturnType -eq "1"))) {return (($listBox.Items.Split("`r`n").Trim() | where {$_ -ne ""}) | Out-String)} #Drag&Drop listBox string out
+    elseif ((($InboxType -eq "txt")-or($InboxType -eq "1")) -and (($ReturnType -eq "ary")-or($ReturnType -eq "2"))) {return  ($form.Tag.Split("`r`n").Trim()      | where {$_ -ne ""})              } #Multiline textBox, array out
+    elseif ((($InboxType -eq "dnd")-or($InboxType -eq "2")) -and (($ReturnType -eq "ary")-or($ReturnType -eq "2"))) {return  ($listBox.Items.Split("`r`n").Trim() | where {$_ -ne ""})              } #Drag&Drop listBox, array out
 }
 #「@MrNetTek」Enable DPI-Aware Windows Forms
 Add-Type -TypeDefinition @'
@@ -100,16 +159,28 @@ public class ProcessDPI {
 '@
 $null = [ProcessDPI]::SetProcessDPIAware()
 
-clear
-
 $mLineVarStr="" #Initialization, and if Read-MultiLineInputDialog outputs $null, this variable remains being ""
 
-#Do-While loop enforced UserErrorAction-Rewind prompting, user cannot proceed by returing empty string
-Do {($mLineVarStr = Read-MultiLineInputDialog -Message "★ Input all text items, separated by line breaks" -WindowTitle "★ Multi-line text input window" -DefaultText ""); if ($mLineVarStr -eq "") {Write-Error "× Received empty value, try again"}} While ($mLineVarStr -eq "")
+#Do-While loop-on-error prompting - Textbox mode - Array output
+#User cannot proceed by returing empty string, or defined false values
+Do {($mLineVarAry = Read-MultiLineInputDialog -Message "Put your text items here, separated by line breaks
+This box allows up to 2 lines of text for extra notes." -WindowTitle "🖅 MLI-Dialog Advanced - Your title here" -InboxType "1" -ReturnType "ary")
+    if  ($mLineVarAry -eq "") {Write-Error "× Received empty value, try again"}
+} While ($mLineVarStr -eq "")
 
-#Normal Prompting
-$mLineVarStr = Read-MultiLineInputDialog -Message "★ Input all text items, separated by line breaks" -WindowTitle "★ Multi-line text input window" -DefaultText ""
+#Normal Prompting, allows empty output - Textbox mode - String output
+$mLineVarStr = Read-MultiLineInputDialog -Message "Put your text items here, separated by line breaks
+This box allows up to 2 lines of text for extra notes" -WindowTitle "🖅 MLI-Dialog Advanced - Textbox mode" -InboxType "txt" -ReturnType "str"
+$mLineVarStr
 
-#Convert multi-line string to Array datatype and clear empty array items
-#The Array item can be directly piped to a ForEach-Object loop and do "+=" styled variable assigns
-$mLineVarAry = $mLineVarStr.Split("`r`n").Trim() | where {$_ -ne ""}
+#Normal Prompting, allows empty output - Drag & drop mode - String output
+$dDropVarStr = Read-MultiLineInputDialog -Message "Drag each of your file items here
+This box allows up to 2 lines of text for extra notes" -WindowTitle "🖅 MLI-Dialog Advanced - Drag&drop mode" -InboxType "dnd" -ReturnType "str"
+$dDropVarStr
+#$mLineVarStr.GetType()
+
+#Normal Prompting - Drag & drop mode - Array output
+$dDropVarAry = Read-MultiLineInputDialog -Message "Drag each of your file items here
+This box allows up to 2 lines of text for extra notes" -WindowTitle "🖅 MLI-Dialog Advanced - Drag&drop mode" -InboxType "dnd" -ReturnType "2"
+$dDropVarAry 
+#$mLineVarAry.GetType()
