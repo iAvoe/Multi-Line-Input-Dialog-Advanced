@@ -10,4 +10,4 @@
 
 √ Automatically scales window size according to monitor resolution
 
-[MultiLine-Input-Dialog-Advanced.ps1](PowerShell-MultiLine-Input-Dialog-Advanced/blob/main/MultiLine-Input-Dialog-Advanced.ps1)
+[MultiLine-Input-Dialog-Advanced.ps1](MultiLine-Input-Dialog-Advanced.ps1)
