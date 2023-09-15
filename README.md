@@ -12,9 +12,9 @@
 
 √ Built-in empty-line scrubbing, only return valid lines*
 
-√ **Built-in string-OR-array output selection with parameter `-ReturnType`**
+√ **New feature: Built-in string-OR-array output selection parameter - `-ReturnType "str"` OR `-ReturnType "ary"`**
 
-√ **A 2nd-ary mode for multi-file drag-&-drop listBox prompt, used for path to multiple files with parameter `-InboxType`**
+√ **New mode: Multi-file drag-&-drop path-importing listBox prompt with `-InboxType "2"` OR `-InboxType "dnd"`**
 
 √ User defined font size for textBox & listBox
 
