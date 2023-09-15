@@ -18,4 +18,4 @@
 
 √ User defined font size for textBox & listBox
 
-[MultiLine-Input-Dialog-Advanced.ps1](PowerShell-MultiLine-Input-Dialog-Advanced/blob/main/MultiLine-Input-Dialog-Advanced.ps1)
+[MultiLine-Input-Dialog-Advanced.ps1](MultiLine-Input-Dialog-Advanced.ps1)
