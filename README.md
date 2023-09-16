@@ -22,4 +22,5 @@
 
 [MultiLine-Input-Dialog-Advanced.ps1](MultiLine-Input-Dialog-Advanced.ps1)
 
-<p align="center"><img src="pp_tip_qrcode.png" alt="Support Me, pls"></p>
+<p align="center"><img src="pp_tip_qrcode.png" alt="Support...Me..."></p>
+<p align="center"><font size=1>Support...me...</font></p>
