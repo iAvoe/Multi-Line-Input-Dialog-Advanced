@@ -1,21 +1,22 @@
-#### An advanced & practical PowerShell MultiLine Read-Host + MultiFile Drag-&-Drop Dialog
+### An advanced & practical PowerShell MultiLine Read-Host + MultiFile Drag-&-Drop Dialog
+- The solution to many user-interactivity problems
 
-√ A Portable Function that can be used in any PowerShell scripts
+[Mode1-2-Demonstration.png](Mode1-2-Demonstration.png)
 
-√ A Textbox multi-line Read-Host GUI with Confirm Cancel prompt (Windows Form)
+- **Mode 1:** Text-Box multi-line Read-Host GUI - to allow users input multiple lines of text with ease
+- **Mode 2:** List-Box multi-file Drag&drop GUI - to allow users to drag a bunch of files and get their full-path
+  - `-InboxType "2"` OR `-InboxType "dnd"`
+- Return-Type selection to whether get string or array output
+  - `-ReturnType "str"` OR `-ReturnType "ary"`
 
-√ Works on both PowerShell ISE & Console
-
-√ Displays correctly on both Low & high DPI display
-
-√ Automatically scales window size according to monitor resolution
-
-√ Built-in empty-line scrubbing, only return valid lines*
-
-√ **New feature: Built-in string-OR-array output selection parameter - `-ReturnType "str"` OR `-ReturnType "ary"`**
-
-√ **New mode: Multi-file drag-&-drop path-importing listBox prompt with `-InboxType "2"` OR `-InboxType "dnd"`**
-
-√ User defined font size for textBox & listBox
+#### Compatibility enhancements:
+- √ Displays correctly on both Low & high DPI display
+- √ Built-in empty-line scrubbing feature, only return valid lines
+- √ Automatically scales window size according to monitor resolution
+- √ Automatically compensates rendering error inbetween PowerShell Console & ISE
+- √ User defined font size for textBox & listBox
+  - `-FontSize <Int>`
+- √ ESC key → Cancel key binding
+- √ (List-Box Mode) DEL key → Remove selected item feature
 
 [MultiLine-Input-Dialog-Advanced.ps1](MultiLine-Input-Dialog-Advanced.ps1)
