@@ -91,8 +91,8 @@
     $okButton.Size = New-Object System.Drawing.Size($OKbSizeX,$OKbSizeY) #OK button size
     $okButton.Text = "OK"
     $okButton.DialogResult = [System.Windows.Forms.DialogResult]::OK
-    if     (($InboxType -eq "txt") -or ($InboxType -eq "1")) {$okButton.Add_Click({$form.Tag = $textBox.Text; $form.Close()})}
-    elseif (($InboxType -eq "dnd") -or ($InboxType -eq "2")) {$okButton.Add_Click({$form.Tag = $listBox.Text; $form.Close()})}
+    if     (($InboxType -eq "txt") -or ($InboxType -eq "1")) {$okButton.Add_Click({$form.Tag = $textBox.Text;  $form.Close()})}
+    elseif (($InboxType -eq "dnd") -or ($InboxType -eq "2")) {$okButton.Add_Click({$form.Tag = $listBox.Items; $form.Close()})}
     #Converting from monitor resolution: Cancel button's starting position
     [int]$ClStartX = [math]::Round($mWidth /4.08)
     [int]$ClStartY = $OKStartY #Same Height as the OK button
@@ -153,15 +153,26 @@
         if ($PSItem.KeyCode -eq "Escape") {$cancelButton.PerformClick()}
     })
     #Normal prompting, user can proceed with $null return by clicking Cancel or ×, or empty string by clicking OK
-    $form.ShowDialog()
-    #Scrub empty lines away and return in multi-line string / array based on user definition
-    if     ((($InboxType -eq "txt")-or($InboxType -eq "1")) -and ($form.Tag -eq ""))                                {return ""}    #No content in textbox, return string
-    elseif ((($InboxType -eq "dnd")-or($InboxType -eq "2")) -and ($listBox.Items.count -eq 0))                      {return $null} #No content in listbox, return $null
-    elseif ((($InboxType -eq "txt")-or($InboxType -eq "1")) -and (($ReturnType -eq "str")-or($ReturnType -eq "1"))) {return (($form.Tag.Split("`r`n").Trim()      | where {$_ -ne ""}) | Out-String)} #Multiline textBox string out
-    elseif ((($InboxType -eq "dnd")-or($InboxType -eq "2")) -and (($ReturnType -eq "str")-or($ReturnType -eq "1"))) {return (($listBox.Items.Split("`r`n").Trim() | where {$_ -ne ""}) | Out-String)} #Drag&Drop listBox string out
-    elseif ((($InboxType -eq "txt")-or($InboxType -eq "1")) -and (($ReturnType -eq "ary")-or($ReturnType -eq "2"))) {return  ($form.Tag.Split("`r`n").Trim()      | where {$_ -ne ""})              } #Multiline textBox, array out
-    elseif ((($InboxType -eq "dnd")-or($InboxType -eq "2")) -and (($ReturnType -eq "ary")-or($ReturnType -eq "2"))) {return  ($listBox.Items.Split("`r`n").Trim() | where {$_ -ne ""})              } #Drag&Drop listBox, array out
+    $form.ShowDialog() | Out-Null #Supress "OK/Cancel" text from returned in Dialog
+
+    #An early-skip to prevent an empty listBox from not come with all of available methods
+    if     (($textBox.Text -eq "")      -and(($InboxType -eq "txt")-or($InboxType -eq "1"))) {
+        if (($ReturnType -eq "str")-or($ReturnType -eq "1")) {return ""}
+        if (($ReturnType -eq "ary")-or($ReturnType -eq "2")) {return $null}
+   }
+   elseif  (($listBox.Items.Count -eq 0)-and(($InboxType -eq "dnd")-or($InboxType -eq "2"))) {
+        if (($ReturnType -eq "str")-or($ReturnType -eq "1")) {return ""}
+        if (($ReturnType -eq "ary")-or($ReturnType -eq "2")) {return $null}
+   }
+
+    #Scrub Empty lines & DialogResult (OK) from returning
+    [array]$ScrbDiagRslt = ($form.Tag.Split("`r`n").Trim()) | where {$_ -ne ""} #Where filtering is very important here because otherwise each line would be followed by an empty line
+
+    #Format result into multi-line string / array based on user definition
+    if     (($ReturnType -eq "str")-or($ReturnType -eq "1")) {return ($ScrbDiagRslt | Out-String).TrimEnd()} #String out, TrimEnd is very important as output would otherwise have an empty line in the end
+    elseif (($ReturnType -eq "ary")-or($ReturnType -eq "2")) {return  $ScrbDiagRslt }                        #Array out
 }
+
 #「@MrNetTek」Enable DPI-Aware Windows Forms
 Add-Type -TypeDefinition @'
 using System.Runtime.InteropServices;
@@ -183,17 +194,26 @@ $mLineVarStr="" #Initialization, and if Read-MultiLineInputDialog outputs $null,
 
 #Normal Prompting (allows empty output) - Textbox mode - String output
 $mLineVarStr = Read-MultiLineInputDialog -Message "Put your text items here, separated by line breaks
-This box allows up to 2 lines of text for extra notes" -WindowTitle "🖅 MLI-Dialog Advanced - Textbox mode" -InboxType "txt" -ReturnType "str"
-$mLineVarStr
+This box allows up to 2 lines of text for extra notes" -WindowTitle "🖅 MLI-Dialog Advanced - Textbox mode" -InboxType "txt" -ReturnType "str" -ShowDebug $true
+"`r`n-----Return-String:`r`n"+$mLineVarStr+"`r`n-----End of Return"
 
 #Normal Prompting (allows empty output) - Drag & drop mode - String output
 $dDropVarStr = Read-MultiLineInputDialog -Message "Drag each of your file items here
-This box allows up to 2 lines of text for extra notes" -WindowTitle "🖅 MLI-Dialog Advanced - Drag&drop mode" -InboxType "dnd" -ReturnType "str"
-$dDropVarStr
+This box allows up to 2 lines of text for extra notes" -WindowTitle "🖅 MLI-Dialog Advanced - Drag&drop mode" -InboxType "dnd" -ReturnType "str" -ShowDebug $true
+"`r`n-----Return-String:`r`n"+$dDropVarStr+"`r`n-----End of Return"
 #$mLineVarStr.GetType()
 
 #Normal Prompting (allows empty output) - Drag & drop mode - Array output
 $dDropVarAry = Read-MultiLineInputDialog -Message "Drag each of your file items here
-This box allows up to 2 lines of text for extra notes" -WindowTitle "🖅 MLI-Dialog Advanced - Drag&drop mode" -InboxType "dnd" -ReturnType "2"
-$dDropVarAry 
+This box allows up to 2 lines of text for extra notes" -WindowTitle "🖅 MLI-Dialog Advanced - Drag&drop mode" -InboxType "dnd" -ReturnType "2" -ShowDebug $true
+#"Return-Array:`r`n"
+#$dDropVarAry
+#"End of return"
+"`r`n-----First item of array:"
+if ($dDropVarAry.Count -gt 0) {$dDropVarAry[0]}  else {"× Array lenth is 0, skipped"}
+"-----Last item of array:"
+if ($dDropVarAry.Count -gt 0) {$dDropVarAry[-1]} else {"× Array lenth is 0, skipped"}
+"`-----Counting items of array:"
+$dDropVarAry.Count
+
 #$mLineVarAry.GetType()
