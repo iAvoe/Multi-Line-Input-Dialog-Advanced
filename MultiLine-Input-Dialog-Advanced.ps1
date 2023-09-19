@@ -156,14 +156,14 @@
     $form.ShowDialog() | Out-Null #Supress "OK/Cancel" text from returned in Dialog
 
     #An early-skip to prevent an empty listBox from not come with all of available methods
-    if     (($textBox.Text -eq "")      -and(($InboxType -eq "txt")-or($InboxType -eq "1"))) {
+    if     ((($InboxType -eq "txt")-or($InboxType -eq "1")) -and ($textBox.Text -eq ""))       {
         if (($ReturnType -eq "str")-or($ReturnType -eq "1")) {return ""}
         if (($ReturnType -eq "ary")-or($ReturnType -eq "2")) {return $null}
-   }
-   elseif  (($listBox.Items.Count -eq 0)-and(($InboxType -eq "dnd")-or($InboxType -eq "2"))) {
+    }
+    elseif  ((($InboxType -eq "dnd")-or($InboxType -eq "2")) -and ($listBox.Items.Count -eq 0)) {
         if (($ReturnType -eq "str")-or($ReturnType -eq "1")) {return ""}
         if (($ReturnType -eq "ary")-or($ReturnType -eq "2")) {return $null}
-   }
+    }
 
     #Scrub Empty lines & DialogResult (OK) from returning
     [array]$ScrbDiagRslt = ($form.Tag.Split("`r`n").Trim()) | where {$_ -ne ""} #Where filtering is very important here because otherwise each line would be followed by an empty line
