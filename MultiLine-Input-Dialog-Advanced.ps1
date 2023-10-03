@@ -1,4 +1,4 @@
-﻿Function Read-MultiLineInputDialog([string]$WindowTitle, [string]$Message, [string]$InboxType, [int]$FontSize=12, [string]$ReturnType="str", [bool]$ShowDebug=$false) {#「@Daniel Schroeder」
+﻿Function Read-MultiLineInputDialog([string]$WindowTitle, [string]$Message, [string]$InboxType="txt", [int]$FontSize=12, [string]$ReturnType="str", [bool]$ShowDebug=$false, [bool]$FixSquareBrkts=$false) {#「@Daniel Schroeder」
     #-WindowTitle "Str Value"  == Title of the prompt window
     #-Message     "Str Value"  == Prompt text shown above textbox and below title box
     #-InboxType   "1" / "txt"  == Default MultiLine Input Dialog
@@ -172,7 +172,12 @@
     }
 
     #Scrub Empty lines & DialogResult (OK) from returning
-    [array]$ScrbDiagRslt = ($form.Tag.Split("`r`n").Trim()) | where {$_ -ne ""} #Where filtering is very important here because otherwise each line would be followed by an empty line
+    if     ($FixSquareBrkts -eq $true) {
+        [array]$ScrbDiagRslt = ($form.Tag.Split("`r`n").Trim()) | ForEach-Object {$_ -replace '[][]','``[][]'} | where {$_ -ne ""} #Where filtering is very important here because otherwise each line would be followed by an empty line
+    }
+    elseif ($FixSquareBrkts -eq $false){
+        [array]$ScrbDiagRslt = ($form.Tag.Split("`r`n").Trim()) | where {$_ -ne ""} #Where filtering is very important here because otherwise each line would be followed by an empty line
+    }
 
     #Format result into multi-line string / array based on user definition
     if     (($ReturnType -eq "str")-or($ReturnType -eq "1")) {return ($ScrbDiagRslt | Out-String).TrimEnd()} #String out, TrimEnd is very important as output would otherwise have an empty line in the end
@@ -199,9 +204,14 @@ $mLineVarStr="" #Initialization, and if Read-MultiLineInputDialog outputs $null,
 #} While ($mLineVarAry -eq "")
 
 #Normal Prompting (allows empty output) - Textbox mode - String output
-$mLineVarStr = Read-MultiLineInputDialog -Message "Put your text items here, separated by line breaks
+$mLineVarStrA = Read-MultiLineInputDialog -Message "Put your text items here, separated by line breaks
 This box allows up to 2 lines of text for extra notes" -WindowTitle "🖅 MLI-Dialog Advanced - Textbox mode" -InboxType "txt" -ReturnType "str" -ShowDebug $true
-"`r`n-----Return-String:`r`n"+$mLineVarStr+"`r`n-----End of Return"
+"`r`n-----Return-String:`r`n"+$mLineVarStrA+"`r`n-----End of Return"
+
+#Normal Prompting (allows empty output) - Textbox mode - String output - Fix square brackets
+$mLineVarStrB = Read-MultiLineInputDialog -Message "Put your text items here, separated by line breaks
+This box allows up to 2 lines of text for extra notes" -WindowTitle "🖅 MLI-Dialog Advanced - Textbox mode" -InboxType "txt" -ReturnType "str" -ShowDebug $true -FixSquareBrkts $true
+"`r`n-----Return-String:`r`n"+$mLineVarStrB+"`r`n-----End of Return"
 
 #Normal Prompting (allows empty output) - Drag & drop mode - String output
 $dDropVarStr = Read-MultiLineInputDialog -Message "Drag each of your file items here

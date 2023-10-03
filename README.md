@@ -1,5 +1,5 @@
 ### An advanced & practical PowerShell MultiLine Read-Host + MultiFile Drag-&-Drop Dialog
-- The solution to many user-interactivity problems
+- The solution to many user-interactivity problems where Bash, CMD, previously just can't deal with
 
 - **Mode 1:** Text-Box multi-line Read-Host GUI - to allow users input multiple lines of text with ease
 - **Mode 2:** List-Box multi-file Drag&drop GUI - to allow users to drag a bunch of files and get their full-path
@@ -15,6 +15,8 @@
 - √ Built-in empty-line scrubbing feature, only return valid lines
 - √ Automatically scales window size according to monitor resolution
 - √ Automatically compensates rendering error inbetween PowerShell Console & ISE
+- √ Option to escape square brackes (\``[, \``]) so Functions like Get-Item, Get-ChildItem can still Function
+  - `-FixSquareBrkts $true`, Default is $false
 - √ User defined font size for textBox & listBox
   - `-FontSize <Int>`
 - √ ESC key → Cancel key binding
