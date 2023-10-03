@@ -173,7 +173,7 @@
 
     #Scrub Empty lines & DialogResult (OK) from returning
     if     ($FixSquareBrkts -eq $true) {
-        [array]$ScrbDiagRslt = ($form.Tag.Split("`r`n").Trim()) | ForEach-Object {$_ -replace '\[','``[' -replace '\]','``]'} | where {$_ -ne ""} #Where filtering is very important here because otherwise each line would be followed by an empty line
+        [array]$ScrbDiagRslt = ($form.Tag.Split("`r`n").Trim()).replace('[','``[').replace(']','``]').replace('``][','``]``[') | where {$_ -ne ""} #Where filtering is very important here because otherwise each line would be followed by an empty line
     }
     elseif ($FixSquareBrkts -eq $false){
         [array]$ScrbDiagRslt = ($form.Tag.Split("`r`n").Trim()) | where {$_ -ne ""} #Where filtering is very important here because otherwise each line would be followed by an empty line
