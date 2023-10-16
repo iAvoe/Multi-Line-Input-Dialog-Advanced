@@ -45,7 +45,7 @@
     
     #Drawing textbox 1 / listbox 2
     if     (($InboxType -eq "txt") -or ($InboxType -eq "1")) {
-        $textBox               = New-Object System.Windows.Forms.TextBox -Property @{
+        $textBox          = New-Object System.Windows.Forms.TextBox -Property @{
             Location      = New-Object System.Drawing.Size($TBStartX,$TBStartY) #Draw starting postiton
             Size          = New-Object System.Drawing.Size($TblSizeX,$TblSizeY) #Size of textbox
             Font          = New-Object System.Drawing.Font((New-Object System.Windows.Forms.Form).font.Name,$FontSize)
@@ -120,7 +120,7 @@
         Text = $WindowTitle
         Size = New-Object System.Drawing.Size($formSizeX,$formSizeY) #Form window size
         FormBorderStyle = 'FixedSingle'
-        StartPosition = "CenterScreen"
+        StartPosition = 'CenterScreen'
         AutoSizeMode = 'GrowAndShrink'
         Topmost = $false
         AcceptButton = $okButton
@@ -226,9 +226,9 @@ This box allows up to 2 lines of text for extra notes" -WindowTitle "🖅 MLI-Di
 #$dDropVarAry
 #"End of return"
 "`r`n-----First item of array:"
-if ($dDropVarAry.Count -gt 0) {$dDropVarAry[0]}  else {"× Array lenth is 0, skipped"}
+if ($dDropVarAry.Count -gt 0) {$dDropVarAry[0]}  else {"× Array length == 0, skipped"}
 "-----Last item of array:"
-if ($dDropVarAry.Count -gt 0) {$dDropVarAry[-1]} else {"× Array lenth is 0, skipped"}
+if ($dDropVarAry.Count -gt 0) {$dDropVarAry[-1]} else {"× Array length == 0, skipped"}
 "`-----Counting items of array:"
 $dDropVarAry.Count
 
