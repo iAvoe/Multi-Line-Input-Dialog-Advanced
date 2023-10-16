@@ -1,4 +1,4 @@
-### An advanced & practical PowerShell MultiLine Read-Host + MultiFile Drag-&-Drop Dialog
+### An advanced & practical MultiLine Read-Host + MultiFile Drag-&-Drop Dialog, based on C# and PowerShell
 - The solution to many user-interactivity problems where Bash, CMD, previously just can't deal with
 
 - **Mode 1:** Text-Box multi-line Read-Host GUI - to allow users input multiple lines of text with ease
